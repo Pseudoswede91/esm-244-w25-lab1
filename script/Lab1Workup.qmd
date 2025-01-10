@@ -90,7 +90,7 @@ What does the `%in%` do? Write an example to explain the `%in%` operator to your
 
 ```{r}
 practice_sort<-sfo_trees_df %>% 
-  filter(legal_status %in% c("permitted Stie", "Undocumented"))
+  filter(legal_status %in% c("permitted Site", "Undocumented"))
 
 ex<-seq(1:10)
 
@@ -113,17 +113,17 @@ Our boss tasked us with identifying oak and pine trees in SF based on legal stat
 
 Write pseudocode on how you would solve it
 
-
-
-
-
-
-
+Get rid of all the columns that aren't what we want
+Filter out the plants that are not pine and oak
+summarize the counts of the oaks and pines
 
 Data wrangle done below:
-
-
+# | in string detect str_detect means "or"
 ```{r}
+oak_pine_df<- sfo_trees_df %>% 
+  filter(str_detect(species,"Oak") | str_detect(species,"Pine")) %>% 
+  select(species,legal_status,plant_date,latitude,longitude) %>% 
+  mutate(type=ifelse(str_detect(species,"Oak"),"Oak","Pine"))
 
 ```
 
@@ -132,18 +132,21 @@ Summary stats
 
 ```{r}
 oak_pine_count<-oak_pine_df |> 
-  group_by(legal_status,type)
+  group_by(legal_status,type) %>% 
   summarize(count=n())
 ```
-
-
 
 Plot the locations of the trees as a scatterplot
 
 ```{r}
-
+ggplot(data = oak_pine_df,
+       aes(x = longitude, y = latitude, color=type)) +
+  geom_point() +
+  theme_minimal() +
+  theme(axis.title = element_blank()) +
+   labs(color = 'Tree type', 
+       caption = 'Locations of Oaks and Pines in San Francisco')
 ```
-
 
 
 ### Example 4
@@ -151,7 +154,7 @@ Plot the locations of the trees as a scatterplot
 Why have a list of native trees in the data folder.
 
 ```{r}
-ca_native_df<-read_csv(here('data/sfo/ca_native_spp.csv'))
+ca_native_df<-read_csv(here('data/sfo_trees/ca_native_spp.csv'))
 
 # Why can I use this format instead of the usual here("data","folder","file")?
 ```
@@ -160,8 +163,6 @@ ca_native_df<-read_csv(here('data/sfo/ca_native_spp.csv'))
 ## Part 2: Analysis and maps
 
 We want to see if there was a difference in planting years between a native oak *Quercus agrifolia* and a native pine *Pinus radiata*. Wrangle the data and use an appropriate statistical test to see if there is a difference.
-
-
 
 **New Function!**
 
@@ -172,7 +173,19 @@ lubridate::year("2022-11-16")
 ```
 
 ```{r}
-oak_pine_year_df<-????
+sfo_trees_native <- sfo_trees_df %>% 
+  separate(species, into = c("spp_sci", "spp_common"), sep = " :: ") %>%
+  select(starts_with('spp'), 'plant_date', 'legal_status', 'longitude', 'latitude') %>%
+  mutate(ca_native = (spp_sci %in% ca_native_df$scientific_name))
+```
+
+```{r}
+oak_pine_year_df<-sfo_trees_native %>% 
+  filter(spp_sci %in% c('Quercus agrifolia','Pinus radiata')) %>% 
+  mutate(plant_year=lubridate::year(plant_date))
+
+#input into a t.test
+t.test(plant_year~spp_sci,data=oak_pine_year_df)
 ```
 
 
@@ -198,7 +211,7 @@ Set the coordinate reference system
 
 ```{r}
 oak_pine_sf<-oak_pine_year_df |> 
-  drop_na(longtide,latitude) |> 
+  drop_na(longitude,latitude) |> 
   st_as_sf(coords=c("longitude","latitude"))
 
 st_crs(oak_pine_sf)<-4326
@@ -231,7 +244,15 @@ ggplot(data = sfo_map) +
 We have all the ingredients. How would you plot these two together to see the trees locations in the city?
 
 ```{r}
-
+ggplot() +
+  geom_sf(data = sfo_map,
+          size = 0.1,
+          color = "darkgray") +
+  geom_sf(data = oak_pine_sf, 
+          aes(color = spp_sci),
+          size = 0.5) +
+  theme_void() +
+  labs(title = "Oaks and pines in San Francisco")
 ```
 
 
@@ -242,7 +263,7 @@ We can make maps interactive in R using the tmaps package (another reason why ht
 There are other packages that do similar things. Consider for your shiny apps!
 
 ```{r}
-tmap_model("view")
+tmap_mode("view")
 
 tm_shape(oak_pine_sf)+
   tm_dots(col='spp_sci')
