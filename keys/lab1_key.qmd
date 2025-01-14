@@ -140,7 +140,7 @@ oak_pine_df <- sfo_trees_df %>%
 Make a little graph of locations (note R doesn't know these are spatial yet). Which trees are oaks vs pines?
 
 ```{r ex 3b}
-ggplot(data = oak_pine_df, aes(x = longitude, y = latitude, color = type)) + 
+ggplot(data = oak_pine_df, aes(x = longitude, y = latitude, color=type)) + 
   geom_point() +
   theme_minimal() +
   theme(axis.title = element_blank()) +
@@ -282,6 +282,3 @@ tm_shape(oak_pine_sf) +
 ## Wrap up part 2
 
 Make sure you render, stage, commit, pull, then push back to GitHub. Done!
-
-
-

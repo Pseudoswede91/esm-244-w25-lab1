@@ -26,7 +26,6 @@ library(here)
 library(tmap)
 ```
 
-
 What do we need to change to get the data to load in the following chunk?
 
 ```{r}
@@ -40,9 +39,7 @@ Look at `sfo_trees_df` dataframe. How many observations are there? What does the
 
 What are some interesting questions you could ask about the data?
 
-Write them below:
-How many counts of each observation by legal_status? focus on the highest trees?
-
+Write them below: How many counts of each observation by legal_status? focus on the highest trees?
 
 ```{r}
 sfo_trees_df <- read_csv(here("data", "sfo_trees", "sfo_trees.csv")) %>%
@@ -50,6 +47,7 @@ sfo_trees_df <- read_csv(here("data", "sfo_trees", "sfo_trees.csv")) %>%
 ```
 
 #command shift m gives you the pipe command hotkey
+
 ```{r}
 # Way 2: Same thing (+ a few other dplyr functions)
 top_5_status <- sfo_trees_df %>% 
@@ -62,8 +60,6 @@ top_5_status <- sfo_trees_df %>%
   arrange(-tree_count)
 ```
 
-
-
 ```{r example 1b}
 ggplot(data = top_5_status, 
        aes(x = legal_status, 
@@ -75,7 +71,6 @@ ggplot(data = top_5_status,
   theme_minimal() 
 ```
 
-
 ### Example 2
 
 Describe what this piece of code does. Feel free to run it to help you understand
@@ -84,7 +79,6 @@ Describe what this piece of code does. Feel free to run it to help you understan
 permitted_mta_dpw<-sfo_trees_df |> 
   filter(legal_status == 'Permitted Site' &caretaker %in% c("MTA","DPW"))
 ```
-
 
 What does the `%in%` do? Write an example to explain the `%in%` operator to your neighbor using the empty code chunk below
 
@@ -97,7 +91,6 @@ ex<-seq(1:10)
 ex %in% c(1,2,11)
 ```
 
-
 ```{r}
 # Way 1: group_by %>% summarize %>% n
 sfo_trees_df %>% 
@@ -106,19 +99,16 @@ sfo_trees_df %>%
   ungroup()
 ```
 
-
 ### Example 3
 
 Our boss tasked us with identifying oak and pine trees in SF based on legal status, location, and planting date. Wrangle the data to plot the locations (without sf borders for now) and then summarize the number of oak and pines by legal status in a separate df. Call the wrangled dataframe `oak_pine_df` and the summary `oak_pine_count`
 
 Write pseudocode on how you would solve it
 
-Get rid of all the columns that aren't what we want
-Filter out the plants that are not pine and oak
-summarize the counts of the oaks and pines
+Get rid of all the columns that aren't what we want Filter out the plants that are not pine and oak summarize the counts of the oaks and pines
 
-Data wrangle done below:
-# | in string detect str_detect means "or"
+Data wrangle done below: \# \| in string detect str_detect means "or"
+
 ```{r}
 oak_pine_df<- sfo_trees_df %>% 
   filter(str_detect(species,"Oak") | str_detect(species,"Pine")) %>% 
@@ -126,7 +116,6 @@ oak_pine_df<- sfo_trees_df %>%
   mutate(type=ifelse(str_detect(species,"Oak"),"Oak","Pine"))
 
 ```
-
 
 Summary stats
 
@@ -148,7 +137,6 @@ ggplot(data = oak_pine_df,
        caption = 'Locations of Oaks and Pines in San Francisco')
 ```
 
-
 ### Example 4
 
 Why have a list of native trees in the data folder.
@@ -159,14 +147,13 @@ ca_native_df<-read_csv(here('data/sfo_trees/ca_native_spp.csv'))
 # Why can I use this format instead of the usual here("data","folder","file")?
 ```
 
-
 ## Part 2: Analysis and maps
 
 We want to see if there was a difference in planting years between a native oak *Quercus agrifolia* and a native pine *Pinus radiata*. Wrangle the data and use an appropriate statistical test to see if there is a difference.
 
 **New Function!**
 
-How to extract the year from the plant data column when it looks like "2022-11-16"? The package `lubridate` and function `year()` pulls out year information from date formats.  See the example code below.
+How to extract the year from the plant data column when it looks like "2022-11-16"? The package `lubridate` and function `year()` pulls out year information from date formats. See the example code below.
 
 ```{r}
 lubridate::year("2022-11-16")
@@ -188,7 +175,6 @@ oak_pine_year_df<-sfo_trees_native %>%
 t.test(plant_year~spp_sci,data=oak_pine_year_df)
 ```
 
-
 Use the graph below to support your results. What does each line of code do in the ggplot?
 
 ```{r}
@@ -197,7 +183,6 @@ ggplot(oak_pine_year_df)+
   facet_wrap(~spp_sci,ncol=1)+
   theme_minimal()
 ```
-
 
 Plot the selected species as points with a different colors for each year and a different shape for each species
 
@@ -221,7 +206,6 @@ ggplot(data=oak_pine_sf)+
   theme_minimal()
 ```
 
-
 **Step 2**
 
 Read in the shape file for San Fransico.
@@ -240,7 +224,6 @@ ggplot(data = sfo_map) +
   geom_sf()
 ```
 
-
 We have all the ingredients. How would you plot these two together to see the trees locations in the city?
 
 ```{r}
@@ -255,7 +238,6 @@ ggplot() +
   labs(title = "Oaks and pines in San Francisco")
 ```
 
-
 ### Interactive Maps!
 
 We can make maps interactive in R using the tmaps package (another reason why html docs are so cool).
@@ -268,7 +250,5 @@ tmap_mode("view")
 tm_shape(oak_pine_sf)+
   tm_dots(col='spp_sci')
 ```
-
-
 
 WE ARE NOT DONE UNTIL WE SAVE, STAGE, COMMIT, AND PUSH!!!!!!
